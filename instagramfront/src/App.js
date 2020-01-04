@@ -67,54 +67,51 @@ export default function Album() {
   const [completeUpload, setCompleteUpload] = useState(false);
   const [title, setTitle] = useState("");
   const [Image, setImage] = useState("");
+  const [post, setPost] = useState([]);
 
   function onChangeHandler(event) {
     console.log("aa", event.target.files[0]);
     setFile(event.target.files[0]);
   }
-  async function uploadImage() {
-    console.log("entroi", file);
-    const data = new FormData();
-    data.append("image", file, file.name);
 
-    axios
-      .post("https://localhost:8080/api", data, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "multipart/form-data"
-        }
-      })
-      .then(res => {
-        console.log(res);
-      });
-  }
+  const getPosts = async () => {
+    try {
+      const data = await fetch("http://localhost:8080/api/");
+      const json = await data.json();
+      setPost(json);
+      console.log(json);
+    } catch (e) {
+      console.error("Problem", e);
+    }
+  };
 
-  function createUser() {
-    fetch("https://localhost:8080/api", {
+  const createPost = async () => {
+    const api = "http://localhost:8080/api/";
+    const settings = {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
       },
-      body: {
-        titulo: "teste",
-        image: "aaaaaaaa.png"
-      }
-    })
-      .then(response => response.json())
-      .then(responseJson => {
-        // console.log(responseJson);
-        if (responseJson.error) {
-          console.log("error");
-        } else {
-          console.log("Sucesso", "Solicitação enviada com sucesso");
-        }
-      })
-      .catch(error => console.log(error));
-  }
+      body: JSON.stringify(title)
+    };
+    try {
+      const fetchResponse = await fetch(api, settings);
+      const data = await fetchResponse.json();
+      return data;
+    } catch (e) {
+      return e;
+    }
+  };
 
   useEffect(() => {
     console.log(title);
+    getPosts();
+  }, []);
+
+  useEffect(() => {
+    post.map(card => (
+      console.log(card.titulo)))
   });
 
   return (
@@ -165,7 +162,7 @@ export default function Album() {
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={() => createUser()}
+                      onClick={() => createPost()}
                     >
                       Fechar
                     </Button>
@@ -174,11 +171,13 @@ export default function Album() {
 
                 <Grid item>
                   {completeUpload ? (
-                    <input
-                      type="input"
-                      name="input"
-                      onChange={e => setTitle(e.target.value)}
-                    />
+                    <div>
+                      <input
+                        type="input"
+                        name="input"
+                        onChange={e => setTitle(e.target.value)}
+                      />
+                    </div>
                   ) : null}
                 </Grid>
               </Grid>
@@ -188,7 +187,7 @@ export default function Album() {
         <Container className={classes.cardGrid} maxWidth="md">
           {/* End hero unit */}
           <Grid container spacing={4}>
-            {cards.map(card => (
+            {post.map(card => (
               <Grid item key={card} xs={12} sm={6} md={4}>
                 <Card className={classes.card}>
                   <CardMedia
@@ -198,7 +197,7 @@ export default function Album() {
                   />
                   <CardContent className={classes.cardContent}>
                     <Typography gutterBottom variant="h5" component="h2">
-                      Heading
+                      {card.titulo}
                     </Typography>
                     <Typography>
                       This is a media card. You can use this section to describe
@@ -207,10 +206,10 @@ export default function Album() {
                   </CardContent>
                   <CardActions>
                     <Button size="small" color="primary">
-                      View
+                      Editar
                     </Button>
                     <Button size="small" color="primary">
-                      Edit
+                      Deletar
                     </Button>
                   </CardActions>
                 </Card>
