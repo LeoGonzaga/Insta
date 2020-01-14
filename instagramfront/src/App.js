@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import AppBar from "@material-ui/core/AppBar";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
@@ -12,7 +12,8 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Link from "@material-ui/core/Link";
-import axios from "axios";
+import "./styles/styles.css";
+// import "./app.css";
 
 function Copyright() {
   return (
@@ -59,20 +60,38 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-export default function Album() {
+
+export default function Album({ history }) {
   const classes = useStyles();
-  const [file, setFile] = useState();
   const [completeUpload, setCompleteUpload] = useState(false);
   const [title, setTitle] = useState("");
-  const [Image, setImage] = useState("");
+  const [description, setDescription] = useState("");
   const [post, setPost] = useState([]);
 
-  function onChangeHandler(event) {
-    console.log("aa", event.target.files[0]);
-    setFile(event.target.files[0]);
+  const [thumbnail, setThumbnail] = useState(null);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    const data = new FormData();
+
+    data.append("thumbnail", thumbnail);
+    data.append("title", title);
+    data.append("description", description);
+
+    // await api.post("/post/", data, {
+    //   headers: { user_id }
+    // });
+
+    history.push("/");
   }
+
+  const preview = useMemo(() => {
+    return thumbnail ? URL.createObjectURL(thumbnail) : null;
+  }, [thumbnail]);
+
+
 
   const getPosts = async () => {
     try {
@@ -85,24 +104,7 @@ export default function Album() {
     }
   };
 
-  const createPost = async () => {
-    const api = "http://localhost:8080/api/";
-    const settings = {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(title)
-    };
-    try {
-      const fetchResponse = await fetch(api, settings);
-      const data = await fetchResponse.json();
-      return data;
-    } catch (e) {
-      return e;
-    }
-  };
+
 
   useEffect(() => {
     console.log(title);
@@ -110,8 +112,7 @@ export default function Album() {
   }, []);
 
   useEffect(() => {
-    post.map(card => (
-      console.log(card.titulo)))
+    post.map(card => console.log(card.titulo));
   });
 
   return (
@@ -150,23 +151,47 @@ export default function Album() {
             <div className={classes.heroButtons}>
               <Grid container spacing={2} justify="center">
                 <Grid item>
-                  {!completeUpload ? (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => setCompleteUpload(!completeUpload)}
-                    >
-                      Adicionar imagem
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => createPost()}
-                    >
-                      Fechar
-                    </Button>
-                  )}
+                  <div style={{ width: 500, height: 400 }}>
+                    <label id="thumbnail">
+                      <input
+                        type="file"
+                        onChange={e => setThumbnail(e.target.files[0])}
+                        style={{
+                          backgroundImage: `url(${preview})`,
+                          height: 400
+                        }}
+                        className={thumbnail ? "has-thumbnail" : null}
+                      />
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flex: 1,
+                      justifyContent: "center",
+                      marginTop: 20
+                    }}
+                  >
+                    {!completeUpload ? (
+                      <Button
+                        style={{ width: 500 }}
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => setCompleteUpload(!completeUpload)}
+                      >
+                        Upload
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => {}}
+                      >
+                        Fechar
+                      </Button>
+                    )}
+                  </div>
                 </Grid>
 
                 <Grid item>
